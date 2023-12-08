@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/dangxnguyen/CSCE4600/Project2/builtins"
+	"github.com/dangxnguyen/CSCE4600/builtins"
 )
 
 func TestHelp(t *testing.T) {

@@ -1,7 +1,7 @@
 package builtins_test
 
 import (
-	"github.com/dangxnguyen/CSCE4600/Project2/builtins"
+	"github.com/dangxnguyen/CSCE4600/builtins"
 	"io/ioutil"
 	"os"
 	"strings"

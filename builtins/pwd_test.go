@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dangxnguyen/CSCE4600/Project2/builtins"
+	"github.com/dangxnguyen/CSCE4600/builtins"
 )
 
 func TestPrintWorkingDirectory(t *testing.T) {

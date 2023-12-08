@@ -9,7 +9,7 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/dangxnguyen/CSCE4600/Project2/builtins"
+	"github.com/dangxnguyen/CSCE4600/builtins"
 )
 
 func main() {

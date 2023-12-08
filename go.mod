@@ -1,4 +1,4 @@
-module github.com/dangxnguyen/CSCE4600/Project2
+module github.com/dangxnguyen/CSCE4600
 
 go 1.19
 

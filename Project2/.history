@@ -1,6 +1,0 @@
-help
-pwd
-echo CSCE4600_Project2
-cd builtins
-history
-exit
