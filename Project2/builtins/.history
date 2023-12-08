@@ -1,0 +1,4 @@
+source pwd.go
+history
+cd Project2
+cd ..
