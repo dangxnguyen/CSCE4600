@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>builtins: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/dangxnguyen/CSCE4600/builtins/cd.go (100.0%)</option>
+				
+				<option value="file1">github.com/dangxnguyen/CSCE4600/builtins/echo.go (100.0%)</option>
+				
+				<option value="file2">github.com/dangxnguyen/CSCE4600/builtins/env.go (100.0%)</option>
+				
+				<option value="file3">github.com/dangxnguyen/CSCE4600/builtins/help.go (100.0%)</option>
+				
+				<option value="file4">github.com/dangxnguyen/CSCE4600/builtins/history.go (83.3%)</option>
+				
+				<option value="file5">github.com/dangxnguyen/CSCE4600/builtins/pwd.go (80.0%)</option>
+				
+				<option value="file6">github.com/dangxnguyen/CSCE4600/builtins/source.go (92.9%)</option>
+				
+				<option value="file7">github.com/dangxnguyen/CSCE4600/main.go (81.4%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package builtins
+
+import (
+        "errors"
+        "fmt"
+        "os"
+)
+
+var (
+        ErrInvalidArgCount = errors.New("invalid argument count")
+        HomeDir, _         = os.UserHomeDir()
+)
+
+func ChangeDirectory(args ...string) error <span class="cov10" title="5">{
+        switch len(args) </span>{
+        case 0:<span class="cov4" title="2"> // change to home directory if available
+                if HomeDir == "" </span><span class="cov1" title="1">{
+                        return fmt.Errorf("%w: no homedir found, expected one argument (directory)", ErrInvalidArgCount)
+                }</span>
+                <span class="cov1" title="1">return os.Chdir(HomeDir)</span>
+        case 1:<span class="cov4" title="2">
+                return os.Chdir(args[0])</span>
+        default:<span class="cov1" title="1">
+                return fmt.Errorf("%w: expected zero or one arguments (directory)", ErrInvalidArgCount)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package builtins
+
+import (
+        "fmt"
+        "io"
+        "strings"
+)
+
+func Echo(w io.Writer, args ...string) error <span class="cov10" title="4">{
+        output := strings.Join(args, " ")
+        _, err := fmt.Fprintln(w, output)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package builtins
+
+import (
+        "fmt"
+        "io"
+        "os"
+        "strings"
+)
+
+func EnvironmentVariables(w io.Writer, args ...string) error <span class="cov3" title="4">{
+        toRemove := make([]string, 0)
+        for i := 0; i &lt; len(args); i++ </span><span class="cov3" title="3">{
+                if args[i] == "-u" </span><span class="cov3" title="3">{
+                        if len(args) &lt; i+2 </span><span class="cov1" title="1">{
+                                return fmt.Errorf("%w: -u requires an argument", ErrInvalidArgCount)
+                        }</span>
+                        <span class="cov2" title="2">toRemove = append(toRemove, args[i+1])
+                        i++</span>
+                }
+        }
+
+        <span class="cov3" title="3">toShow := make([]string, 0)
+        for _, env := range os.Environ() </span><span class="cov10" title="118">{
+                show := true
+                for _, v := range toRemove </span><span class="cov9" title="81">{
+                        if strings.HasPrefix(env, v+"=") </span><span class="cov2" title="2">{
+                                show = false
+                                break</span>
+                        }
+                }
+                <span class="cov10" title="118">if show </span><span class="cov9" title="116">{
+                        toShow = append(toShow, env)
+                }</span>
+        }
+
+        <span class="cov3" title="3">_, err := fmt.Fprintln(w, strings.Join(toShow, "\n"))
+
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package builtins
+
+import (
+        "fmt"
+        "io"
+)
+
+var commands = map[string]string{
+        "cd":      "Change the current directory",
+        "env":     "List environment variables",
+        "echo":    "Display a line of text",
+        "pwd":     "Print the current working directory",
+        "source":  "Execute commands from a file",
+        "help":    "Display help for available commands",
+        "history": "Display the command history",
+        "exit":    "Exit the shell",
+}
+
+func Help(w io.Writer, args ...string) <span class="cov5" title="4">{
+        if len(args) &gt; 0 </span><span class="cov3" title="2">{
+                if desc, found := commands[args[0]]; found </span><span class="cov1" title="1">{
+                        fmt.Fprintf(w, "Description for '%s': %s\n", args[0], desc)
+                }</span> else<span class="cov1" title="1"> {
+                        fmt.Fprintf(w, "No help available for '%s'\n", args[0])
+                }</span>
+        } else<span class="cov3" title="2"> {
+                fmt.Fprintln(w, "Available commands:")
+                for _, cmd := range []string{"cd", "env", "echo", "pwd", "source", "help", "history", "exit"} </span><span class="cov10" title="16">{
+                        if desc, found := commands[cmd]; found </span><span class="cov10" title="16">{
+                                fmt.Fprintf(w, "%s: %s\n", cmd, desc)
+                        }</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// builtins/history.go
+
+package builtins
+
+import (
+        "bufio"
+        "fmt"
+        "os"
+)
+
+const historyFile = ".history"
+
+func SaveToHistory(command string) error <span class="cov7" title="12">{
+        file, err := os.OpenFile(historyFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov7" title="12">defer file.Close()
+
+        if _, err := fmt.Fprintf(file, "%s\n", command); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov7" title="12">return nil</span>
+}
+
+func ShowHistory() error <span class="cov2" title="2">{
+        file, err := os.OpenFile(historyFile, os.O_RDONLY|os.O_CREATE, 0644)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov2" title="2">defer file.Close()
+
+        fmt.Println("Command history:")
+        scanner := bufio.NewScanner(file)
+        count := 1
+        for scanner.Scan() </span><span class="cov10" title="31">{
+                fmt.Printf("%d. %s\n", count, scanner.Text())
+                count++
+        }</span>
+
+        <span class="cov2" title="2">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package builtins
+
+import (
+        "fmt"
+        "os"
+)
+
+func PrintWorkingDirectory() error <span class="cov10" title="2">{
+        wd, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov10" title="2">fmt.Println(wd)
+        return nil</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">package builtins
+
+import (
+        "bufio"
+        "fmt"
+        "os"
+        "strings"
+)
+
+func Source(fileName string, args ...string) error <span class="cov10" title="6">{
+        file, err := os.Open(fileName)
+        if err != nil </span><span class="cov4" title="2">{
+                return err
+        }</span>
+        <span class="cov7" title="4">defer file.Close()
+
+        scanner := bufio.NewScanner(file)
+        for scanner.Scan() </span><span class="cov7" title="4">{
+                command := scanner.Text()
+                fullCommand := command
+                if len(args) &gt; 0 </span><span class="cov1" title="1">{
+                        // Append each argument individually
+                        fullCommand = fmt.Sprintf("%s %s", command, strings.Join(args, " "))
+                }</span>
+                <span class="cov7" title="4">fmt.Println(fullCommand)</span>
+        }
+
+        <span class="cov7" title="4">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov7" title="4">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package main
+
+import (
+        "bufio"
+        "fmt"
+        "io"
+        "os"
+        "os/exec"
+        "os/user"
+        "strings"
+
+        "github.com/dangxnguyen/CSCE4600/builtins"
+)
+
+func main() <span class="cov0" title="0">{
+        exit := make(chan struct{}, 2) // buffer this so there's no deadlock.
+        runLoop(os.Stdin, os.Stdout, os.Stderr, exit)
+}</span>
+
+func runLoop(r io.Reader, w, errW io.Writer, exit chan struct{}) <span class="cov1" title="2">{
+        var (
+                input    string
+                err      error
+                readLoop = bufio.NewReader(r)
+        )
+        for </span><span class="cov10" title="935">{
+                select </span>{
+                case &lt;-exit:<span class="cov1" title="2">
+                        _, _ = fmt.Fprintln(w, "exiting gracefully...")
+                        return</span>
+                default:<span class="cov9" title="933">
+                        if err := printPrompt(w); err != nil </span><span class="cov0" title="0">{
+                                _, _ = fmt.Fprintln(errW, err)
+                                continue</span>
+                        }
+                        <span class="cov9" title="933">if input, err = readLoop.ReadString('\n'); err != nil </span><span class="cov9" title="932">{
+                                _, _ = fmt.Fprintln(errW, err)
+                                continue</span>
+                        }
+                        <span class="cov1" title="1">if err = handleInput(w, input, exit); err != nil </span><span class="cov0" title="0">{
+                                _, _ = fmt.Fprintln(errW, err)
+                        }</span>
+                }
+        }
+}
+
+func printPrompt(w io.Writer) error <span class="cov9" title="933">{
+        // Get current user.
+        // Don't prematurely memoize this because it might change due to `su`?
+        u, err := user.Current()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // Get current working directory.
+        <span class="cov9" title="933">wd, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // /home/User [Username] $
+        <span class="cov9" title="933">_, err = fmt.Fprintf(w, "%v [%v] $ ", wd, u.Username)
+
+        return err</span>
+}
+
+func handleInput(w io.Writer, input string, exit chan&lt;- struct{}) error <span class="cov3" title="9">{
+        // Remove trailing spaces.
+        input = strings.TrimSpace(input)
+
+        // Split the input separate the command name and the command arguments.
+        args := strings.Split(input, " ")
+        name, args := args[0], args[1:]
+
+        // Save command to history.
+        if err := builtins.SaveToHistory(input); err != nil </span><span class="cov0" title="0">{
+                fmt.Println("Error saving to history:", err)
+        }</span>
+
+        // Check for built-in commands.
+        // New builtin commands should be added here. Eventually this should be refactored to its own func.
+        <span class="cov3" title="9">switch name </span>{
+        case "cd":<span class="cov1" title="1">
+                return builtins.ChangeDirectory(args...)</span>
+        case "env":<span class="cov1" title="1">
+                return builtins.EnvironmentVariables(w, args...)</span>
+        case "echo":<span class="cov1" title="1">
+                return builtins.Echo(w, args...)</span>
+        case "help":<span class="cov1" title="1">
+                builtins.Help(w, args...)</span>
+        case "history":<span class="cov1" title="1">
+                return builtins.ShowHistory()</span>
+        case "pwd":<span class="cov1" title="1">
+                return builtins.PrintWorkingDirectory()</span>
+        case "source":<span class="cov1" title="1">
+                return builtins.Source(args[0])</span>
+        case "exit":<span class="cov1" title="2">
+                exit &lt;- struct{}{}
+                return nil</span>
+        }
+
+        <span class="cov1" title="1">return executeCommand(name, args...)</span>
+}
+
+func executeCommand(name string, arg ...string) error <span class="cov2" title="3">{
+        // Otherwise prep the command
+        cmd := exec.Command(name, arg...)
+
+        // Set the correct output device.
+        cmd.Stderr = os.Stderr
+        cmd.Stdout = os.Stdout
+
+        // Execute the command and return the error.
+        return cmd.Run()
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

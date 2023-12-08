@@ -12,3 +12,12 @@ cd ..
 echo hello world
 exit
 cd ..
+echo hello world
+exit
+cd ..
+echo hello world
+exit
+cd ..
+echo hello world
+exit
+cd ..
