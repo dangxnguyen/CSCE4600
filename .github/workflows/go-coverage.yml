@@ -1,7 +1,5 @@
-- name: Go Coverage
-uses: gwatts/go-coverage-action@v1.3.0
+name: Go Coverage
 
-name: "Go Coverage"
 on:
   pull_request:
   push:
@@ -18,7 +16,7 @@ jobs:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
 
-    - uses: gwatts/go-coverage-action@v1
+    - uses: gwatts/go-coverage-action@v1.3.0
       id: coverage
       with:
         # Optional coverage threshold
