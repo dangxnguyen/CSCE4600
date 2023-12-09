@@ -1,69 +1,72 @@
-name: Go CI
+name: go-test
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ 'main']
+  workflow_dispatch:
+    branches: [ '**' ]
 
 jobs:
-  ci:
-    name: CI
-    runs-on: ubuntu-latest
+  full_ci:
+    strategy:
+      matrix:
+        go_version: [ 1.20.x ]
+
+    runs-on: ubuntu-20.04
+
     steps:
-      - name: Create code coverage status for the current commit
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go_version }}
+      
+      - name: Install gocover-cobertura
         run: |
-          curl "https://{GIT_USER}:${GIT_TOKEN}@api.github.com/repos/${ORG_NAME}/${PROJECT_NAME}/statuses/${COMMIT_SHA}" -d "{\"state\": \"pending\",\"target_url\": \"https://github.com/${ORG_NAME}/${PROJECT_NAME}/pull/${PULL_NUMBER}/checks?check_run_id=${RUN_ID}\",\"description\": \"in progress — This check has started... \",\"context\": \"code cov\"}"
+            go get github.com/boumenot/gocover-cobertura && go install github.com/boumenot/gocover-cobertura
+      # Install gotestfmt on the VM running the action.
+      - name: Set up gotestfmt
+        uses: GoTestTools/gotestfmt-action@v2
+        with:
+          # Optional: pass the gotestfmt version you want to run. 
+          version: v2.0.0
+          # Optional: pass an organization name and repo to use a fork
+          org: GoTestTools
+          repo: gotestfmt
+          
+      - name: Run tests
+        run: sudo go test -race -json -v -coverprofile=coverage.txt ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
+      
+      - name: Convert go coverage to corbetura format
+        run: gocover-cobertura < coverage.txt > coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
         env:
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          GIT_USER: ${{ secrets.GIT_USER }}
-          ORG_NAME: ${{ secrets.ORG_NAME }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
-          RUN_ID: ${{ github.run_id }}
-          PULL_NUMBER: ${{ github.event.pull_request.number }}
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          go-version: ^1.15
-        id: go
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-      - name: Test
-        run: |
-          CVPKG=$(go list ./... | grep -v mocks | tr '\n' ',')
-          go test -coverpkg=${CVPKG} -coverprofile=coverage.out -covermode=count  ./...
-      - name: publish code cov
-        uses: actions/upload-artifact@v2
+          files: ./coverage.xml
+        
+      - name: Generate code coverage report
+        uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          name: code covarege report
-          path: coverage.out
-      - name: Setup gcloud cli
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+          filename: coverage.xml
+          badge: false
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '60 80'
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
         with:
-          version: '290.0.1'
-          project_id: adikastyle-dev
-          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
-          export_default_credentials: true
-      - name: Generate covarege Status
-        run: |
-          set -x
-          PROJECT_NAME=${PROJECT_NAME}
-          if gsutil -q stat gs://${SOME_BUCKET}/$PROJECT_NAME/coverage.out ; then
-            gsutil cp gs://${SOME_BUCKET}/$PROJECT_NAME/coverage.out coverage_prev.out
-            prev_total=`go tool cover -func=coverage_prev.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
-          else
-            prev_total=0
-          fi
-          gsutil cp coverage.out gs://${SOME_BUCKET}/${PROJECT_NAME}/coverage.out
-          total=`go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
-          echo "total cov: $total"
-          echo "prev build cov: $prev_total"
-          (( $(echo "$total > $prev_total" | bc -l) )) && STATE=success || STATE=failure
-          curl "https://${GIT_USER}:${ADIKA_GITHUB_TOKEN}@api.github.com/repos/${ORG_NAME}/${PROJECT_NAME}/statuses/${COMMIT_SHA}" -d "{\"state\": \"${STATE}\",\"target_url\": \"https://github.com/${ORG_NAME}/${PROJECT_NAME}/pull/${PULL_NUMBER}/checks?check_run_id=${RUN_ID}\",\"description\": \"${total}%\",\"context\": \"code cov\"}"
-        env:
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          GIT_USER: ${{ secrets.GIT_USER }}
-          ORG_NAME: ${{ secrets.ORG_NAME }}
-          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
-          PULL_NUMBER: ${{ github.event.pull_request.number }}
-          RUN_ID: ${{ github.run_id }}
+          recreate: true
+          path: code-coverage-results.md
