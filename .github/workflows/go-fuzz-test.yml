@@ -1,12 +1,21 @@
-name: Go fuzz test
+name: Go
+
 on:
   push:
-  pull_request:
+
 jobs:
-  fuzz-test:
-    name: Fuzz test
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: jidicula/go-fuzz-action@v1.1.0
-        with:
-          fuzz-time: 30s
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      uses: robherley/go-test-action@v0.1.0
