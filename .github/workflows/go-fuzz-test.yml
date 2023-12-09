@@ -1,21 +1,14 @@
-name: Go
-
-on:
-  push:
-
+name: go-apidiff
+on: [ pull_request ]
 jobs:
-  test:
+  go-apidiff:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-
-    - name: Set up Go
-      uses: actions/setup-go@v3
       with:
-        go-version: 1.18
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      uses: robherley/go-test-action@v0.1.0
+        fetch-depth: 0
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+    - uses: joelanford/go-apidiff@main
