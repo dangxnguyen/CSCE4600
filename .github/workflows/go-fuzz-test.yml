@@ -1,14 +1,18 @@
-name: go-apidiff
-on: [ pull_request ]
+name: Test coverage report
+concurrency:
+  cancel-in-progress: true
+  group: coverdiff-${{ github.ref }}
+
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  go-apidiff:
-    if: github.event_name == 'pull_request'
+  main:
+    name: Coverage
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-go@v4
-      with:
-        go-version-file: go.mod
-    - uses: joelanford/go-apidiff@main
+    - name: Go cover diff
+      uses: kskitek/coverdiff@v0.3.0
